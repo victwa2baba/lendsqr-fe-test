@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     deleteCookie('user');
     setIsLoggedIn(false);
     setUser(null);
-    router.push('/auth/login'); // Can be modified to the project's auth path
+    router.push('/login');
   };
 
   const updateUser = (user: User) => {

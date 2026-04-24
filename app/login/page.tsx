@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,6 +27,7 @@ const DEMO_USER: User = {
 };
 
 export default function LoginPage() {
+  const router = useRouter();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -49,6 +51,7 @@ export default function LoginPage() {
     };
 
     login('mock-session-token', sessionUser);
+    router.push('/dashboard');
   };
 
   return (

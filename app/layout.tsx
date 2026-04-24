@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import '@/styles/globals.scss';
 import { Providers } from './providers';
-import { Footer } from '@/components/footer';
 import type { Metadata, Viewport } from 'next';
 
 const siteName = 'Lendsqr Test Task';
@@ -46,7 +45,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="antialiased">
         <Providers>
           <main>{children}</main>
-          
         </Providers>
       </body>
     </html>

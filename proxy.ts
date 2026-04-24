@@ -5,7 +5,7 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get('token')?.value;
 
   // You can modify this middleware as per your project's requirements.
-  if (!token) return NextResponse.redirect(new URL('/auth/login', request.url));
+  if (!token) return NextResponse.redirect(new URL('/login', request.url));
 
   return NextResponse.next();
 }
