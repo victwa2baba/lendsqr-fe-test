@@ -46,7 +46,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="antialiased">
         <Providers>
           <main>{children}</main>
-          <Footer />
+          
         </Providers>
       </body>
     </html>
