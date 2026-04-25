@@ -19,26 +19,19 @@ Before you begin, ensure you have the following installed:
 
 ## Getting Started
 
-1. Clone the repository:
-
-```bash
-git clone https://git.chigisoft.dev/boilerplates/react-next-template.git
-cd react-next-template
-```
-
-2. Install dependencies:
+1. Install dependencies:
 
 ```bash
 yarn install
 ```
 
-3. Start the development server:
+2. Start the development server:
 
 ```bash
 yarn dev
 ```
 
-4. Open the app in your browser:
+3. Open the app in your browser:
 
 ```
 http://localhost:3000
