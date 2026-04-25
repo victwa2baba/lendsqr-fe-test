@@ -1,10 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Search } from 'lucide-react';
 
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { LoadingSpinner } from '@/components/dashboard/loading-spinner';
+import { MobileUsersFilters } from '@/components/dashboard/mobile-users-filters';
 import { DesktopUsersTable } from '@/components/dashboard/users-table-desktop';
 import { MobileUsersTable } from '@/components/dashboard/users-table-mobile';
 import { useUsersDashboard } from '@/components/dashboard/use-users-dashboard';
@@ -174,6 +175,32 @@ export function UsersDashboard() {
       mobileContent={
         <>
           <h1 className="text-[24px] font-medium leading-[28px] text-[#213F7D]">Users</h1>
+
+          <section className="mt-4">
+            <form
+              className="flex h-[44px] overflow-hidden rounded-[8px] border border-[#213F7D33] bg-white"
+              onSubmit={(event) => event.preventDefault()}
+            >
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(event) => handleSearch(event.target.value)}
+                placeholder="Search users"
+                className="h-full flex-1 bg-white px-4 text-[14px] leading-[16px] text-[#213F7D] placeholder:text-[#545F7DB2] focus:outline-none"
+              />
+              <div className="inline-flex w-[52px] items-center justify-center bg-[#39CDCC] text-white">
+                <Search className="size-[14px]" strokeWidth={2.5} />
+              </div>
+            </form>
+          </section>
+
+          <MobileUsersFilters
+            filters={appliedFilters}
+            hasActiveFilters={hasActiveFilters}
+            organizationOptions={organizationOptions}
+            onApplyFilters={handleApplyFilters}
+            onResetFilters={handleResetFilters}
+          />
 
           <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {statItems.map((item) => (

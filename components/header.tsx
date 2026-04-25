@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChangeEventHandler, FormEventHandler } from 'react';
 import Image from 'next/image';
-import { Bell, ChevronDown, LogOut, Search } from 'lucide-react';
+import { Bell, ChevronDown, LogOut, Menu, Search, X } from 'lucide-react';
 
 const SEARCH_DEBOUNCE_DELAY_MS = 400;
 
@@ -214,12 +214,16 @@ type MobileHeaderProps = {
   avatarSrc: string;
   userName: string;
   onLogout?: () => void;
+  onMenuToggle?: () => void;
+  isSidebarOpen?: boolean;
 };
 
 export function MobileHeader({
   avatarSrc,
   userName,
   onLogout,
+  onMenuToggle,
+  isSidebarOpen = false,
 }: MobileHeaderProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
@@ -266,15 +270,33 @@ export function MobileHeader({
   };
 
   return (
-    <header className="sticky top-0 z-[200] flex h-[76px] items-center justify-between border-b border-[#213F7D14] bg-white px-5">
-      <Image
-        src="/images/login/lendsqr-logo.svg"
-        alt="Lendsqr"
-        width={110}
-        height={23}
-        className="h-[23px] w-[110px]"
-        priority
-      />
+    <header className="fixed inset-x-0 top-0 z-[200] flex h-[76px] items-center justify-between border-b border-[#213F7D14] bg-white px-5">
+      <div className="flex items-center gap-3">
+        {onMenuToggle ? (
+          <button
+            type="button"
+            className="inline-flex size-9 items-center justify-center rounded-[8px] border border-[#213F7D1A] text-[#213F7D]"
+            aria-label={isSidebarOpen ? 'Close sidebar menu' : 'Open sidebar menu'}
+            aria-expanded={isSidebarOpen}
+            onClick={onMenuToggle}
+          >
+            {isSidebarOpen ? (
+              <X className="size-4" strokeWidth={2.3} />
+            ) : (
+              <Menu className="size-4" strokeWidth={2.3} />
+            )}
+          </button>
+        ) : null}
+
+        <Image
+          src="/images/login/lendsqr-logo.svg"
+          alt="Lendsqr"
+          width={110}
+          height={23}
+          className="h-[23px] w-[110px]"
+          priority
+        />
+      </div>
       <div className="relative" ref={userMenuRef}>
         <button
           type="button"

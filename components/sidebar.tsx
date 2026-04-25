@@ -5,9 +5,11 @@ import { ChevronDown } from 'lucide-react';
 
 import { SIDEBAR_META_ICONS } from '@/lib/constants/dashboard';
 import type { DashboardNavItem, DashboardNavSection } from '@/lib/types/dashboard';
+import { cn } from '@/lib/utils';
 
 type SidebarProps = {
   sections: DashboardNavSection[];
+  className?: string;
 };
 
 function SidebarItem({ item }: { item: DashboardNavItem }) {
@@ -34,9 +36,14 @@ function SidebarItem({ item }: { item: DashboardNavItem }) {
   );
 }
 
-export function Sidebar({ sections }: SidebarProps) {
+export function Sidebar({ sections, className }: SidebarProps) {
   return (
-    <aside className="no-scrollbar min-h-0 overflow-y-auto border-r border-[#213F7D0F] bg-white pb-8 pt-[39px] shadow-[0px_5px_20px_0px_rgba(0,0,0,0.04)]">
+    <aside
+      className={cn(
+        'no-scrollbar min-h-0 overflow-y-auto border-r border-[#213F7D0F] bg-white pb-8 pt-[39px] shadow-[0px_5px_20px_0px_rgba(0,0,0,0.04)]',
+        className,
+      )}
+    >
       <div className="px-[30px]">
         <button
           type="button"
