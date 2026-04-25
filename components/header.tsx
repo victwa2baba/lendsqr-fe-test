@@ -1,8 +1,11 @@
 'use client';
 
-import type { FormEventHandler } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ChangeEventHandler, FormEventHandler } from 'react';
 import Image from 'next/image';
 import { Bell, ChevronDown, Search } from 'lucide-react';
+
+const SEARCH_DEBOUNCE_DELAY_MS = 400;
 
 type HeaderProps = {
   avatarSrc: string;
@@ -19,16 +22,54 @@ export function Header({
   searchPlaceholder = 'Search for anything',
   showDocsLink = true,
 }: HeaderProps) {
-  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
-    event.preventDefault();
+  const [searchValue, setSearchValue] = useState('');
+  const hasInitializedSearch = useRef(false);
+  const lastDispatchedQuery = useRef<string | null>(null);
 
+  const dispatchSearch = useCallback(
+    (rawQuery: string) => {
+      if (!onSearch) {
+        return;
+      }
+
+      const query = rawQuery.trim();
+
+      if (query === lastDispatchedQuery.current) {
+        return;
+      }
+
+      lastDispatchedQuery.current = query;
+      onSearch(query);
+    },
+    [onSearch],
+  );
+
+  useEffect(() => {
     if (!onSearch) {
       return;
     }
 
-    const formData = new FormData(event.currentTarget);
-    const query = String(formData.get('search') ?? '').trim();
-    onSearch(query);
+    if (!hasInitializedSearch.current) {
+      hasInitializedSearch.current = true;
+      return;
+    }
+
+    const debounceTimer = setTimeout(() => {
+      dispatchSearch(searchValue);
+    }, SEARCH_DEBOUNCE_DELAY_MS);
+
+    return () => {
+      clearTimeout(debounceTimer);
+    };
+  }, [dispatchSearch, onSearch, searchValue]);
+
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    dispatchSearch(searchValue);
+  };
+
+  const handleSearchInputChange: ChangeEventHandler<HTMLInputElement> = (event) => {
+    setSearchValue(event.target.value);
   };
 
   return (
@@ -50,6 +91,8 @@ export function Header({
           <input
             type="text"
             name="search"
+            value={searchValue}
+            onChange={handleSearchInputChange}
             placeholder={searchPlaceholder}
             className="h-full flex-1 bg-white px-5 text-[14px] leading-[16px] text-[#213F7D] placeholder:text-[#545F7DB2] focus:outline-none"
           />

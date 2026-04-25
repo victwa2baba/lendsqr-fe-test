@@ -4,6 +4,7 @@ import type {
   UserRow,
   UserStatistics,
   UserStatus,
+  UserTableFilters,
 } from '@/lib/types/dashboard';
 
 const USER_DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
@@ -207,4 +208,92 @@ export function buildPaginationTokens(
   tokens.push(totalPages);
 
   return tokens;
+}
+
+function normalizeSearchValue(value: string) {
+  return value.trim().toLowerCase();
+}
+
+export function filterUserRowsByQuery(rows: UserRow[], query: string): UserRow[] {
+  const normalizedQuery = normalizeSearchValue(query);
+
+  if (!normalizedQuery) {
+    return rows;
+  }
+
+  return rows.filter((row) => {
+    const searchableValues = [
+      row.organization,
+      row.username,
+      row.email,
+      row.phoneNumber,
+      row.dateJoined,
+      row.status,
+    ];
+
+    return searchableValues.some((value) =>
+      normalizeSearchValue(value).includes(normalizedQuery),
+    );
+  });
+}
+
+function containsFilterValue(target: string, filterValue: string) {
+  const normalizedFilterValue = normalizeSearchValue(filterValue);
+
+  if (!normalizedFilterValue) {
+    return true;
+  }
+
+  return normalizeSearchValue(target).includes(normalizedFilterValue);
+}
+
+function formatDateToInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function matchesDateFilter(dateJoinedLabel: string, dateFilterValue: string) {
+  const normalizedDateFilterValue = dateFilterValue.trim();
+
+  if (!normalizedDateFilterValue) {
+    return true;
+  }
+
+  const parsedJoinedDate = new Date(dateJoinedLabel);
+
+  if (Number.isNaN(parsedJoinedDate.getTime())) {
+    return false;
+  }
+
+  return formatDateToInputValue(parsedJoinedDate) === normalizedDateFilterValue;
+}
+
+export function filterUserRowsByAdvancedFilters(
+  rows: UserRow[],
+  filters: UserTableFilters,
+): UserRow[] {
+  return rows.filter((row) => {
+    const organizationMatches = containsFilterValue(
+      row.organization,
+      filters.organization,
+    );
+    const usernameMatches = containsFilterValue(row.username, filters.username);
+    const emailMatches = containsFilterValue(row.email, filters.email);
+    const phoneMatches = containsFilterValue(row.phoneNumber, filters.phoneNumber);
+    const dateMatches = matchesDateFilter(row.dateJoined, filters.dateJoined);
+    const statusMatches = filters.status
+      ? normalizeSearchValue(row.status) === normalizeSearchValue(filters.status)
+      : true;
+
+    return (
+      organizationMatches &&
+      usernameMatches &&
+      emailMatches &&
+      phoneMatches &&
+      dateMatches &&
+      statusMatches
+    );
+  });
 }

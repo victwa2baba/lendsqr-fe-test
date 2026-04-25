@@ -1,26 +1,18 @@
 'use client';
 
-import type { LucideIcon } from 'lucide-react';
-import { BriefcaseBusiness, ChevronDown, Database, LogOut } from 'lucide-react';
+import Image from 'next/image';
+import { ChevronDown, LogOut } from 'lucide-react';
 
-export type NavItem = {
-  label: string;
-  Icon: LucideIcon;
-  active?: boolean;
-};
-
-export type NavSection = {
-  title: string;
-  items: NavItem[];
-};
+import { SIDEBAR_META_ICONS } from '@/lib/constants/dashboard';
+import type { DashboardNavItem, DashboardNavSection } from '@/lib/types/dashboard';
 
 type SidebarProps = {
-  sections: NavSection[];
+  sections: DashboardNavSection[];
   onLogout: () => void;
   version?: string;
 };
 
-function SidebarItem({ item }: { item: NavItem }) {
+function SidebarItem({ item }: { item: DashboardNavItem }) {
   return (
     <button
       type="button"
@@ -31,7 +23,14 @@ function SidebarItem({ item }: { item: NavItem }) {
           : 'border-l-[3px] border-transparent text-[#7A8CB1]',
       ].join(' ')}
     >
-      <item.Icon className="size-4 shrink-0" strokeWidth={1.75} />
+      <Image
+        src={item.iconSrc}
+        alt=""
+        width={16}
+        height={16}
+        aria-hidden
+        className="size-4 shrink-0"
+      />
       <span className="text-[16px] font-normal leading-[19px]">{item.label}</span>
     </button>
   );
@@ -49,7 +48,14 @@ export function Sidebar({
           type="button"
           className="flex h-[40px] items-center gap-[10px] text-[16px] text-[#545F7D]"
         >
-          <BriefcaseBusiness className="size-4" strokeWidth={1.75} />
+          <Image
+            src={SIDEBAR_META_ICONS.switchOrganization}
+            alt=""
+            width={16}
+            height={16}
+            aria-hidden
+            className="size-4"
+          />
           <span>Switch Organization</span>
           <ChevronDown className="size-4" strokeWidth={2} />
         </button>
@@ -59,7 +65,14 @@ export function Sidebar({
         type="button"
         className="mt-6 flex h-[40px] w-full items-center gap-[10px] px-[30px] text-left text-[16px] text-[#7A8CB1]"
       >
-        <Database className="size-4" strokeWidth={1.75} />
+        <Image
+          src={SIDEBAR_META_ICONS.dashboard}
+          alt=""
+          width={16}
+          height={16}
+          aria-hidden
+          className="size-4"
+        />
         <span>Dashboard</span>
       </button>
 

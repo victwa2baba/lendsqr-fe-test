@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { ChevronDown, LogOut } from 'lucide-react';
 
 import { LoadingSpinner } from '@/components/dashboard/loading-spinner';
@@ -17,15 +18,23 @@ export function UsersDashboard() {
   const avatarSrc = '/images/dashboard/avatar.png';
 
   const {
+    appliedFilters,
     currentPage,
-    formattedTotalUsers,
+    formattedPaginationTotalUsers,
     formattedVisibleUsers,
+    handleApplyFilters,
     handleNextPage,
     handlePreviousPage,
+    handleResetFilters,
+    handleSearch,
+    handleUpdateUserStatus,
+    hasActiveFilters,
     isLoadingUsers,
+    organizationOptions,
     paginatedRows,
     paginationDisabled,
     paginationTokens,
+    searchQuery,
     setCurrentPage,
     statItems,
     totalPages,
@@ -36,7 +45,12 @@ export function UsersDashboard() {
     <div className="min-h-screen bg-[#FBFBFB] font-['Work_Sans'] text-[#545F7D]">
       <div className="hidden lg:block">
         <div className="mx-auto grid min-h-screen w-full max-w-[1440px] grid-cols-[283px_minmax(0,1fr)] grid-rows-[100px_minmax(0,1fr)]">
-          <Header userName={userName} avatarSrc={avatarSrc} />
+          <Header
+            userName={userName}
+            avatarSrc={avatarSrc}
+            onSearch={handleSearch}
+            searchPlaceholder="Search users"
+          />
           <Sidebar sections={NAV_SECTIONS} onLogout={logout} />
 
           <main className="min-w-0 px-6 pb-10 pt-10 xl:px-[60px] xl:pb-[40px] xl:pt-[60px]">
@@ -52,10 +66,13 @@ export function UsersDashboard() {
                     className="inline-flex size-10 items-center justify-center rounded-full"
                     style={{ backgroundColor: `${item.tint}1A` }}
                   >
-                    <item.Icon
-                      className="size-[18px]"
-                      style={{ color: item.tint }}
-                      strokeWidth={2}
+                    <Image
+                      src={item.iconSrc}
+                      alt=""
+                      width={24}
+                      height={24}
+                      aria-hidden
+                      className="size-6"
                     />
                   </div>
                   <p className="mt-[14px] text-[14px] font-medium uppercase leading-[16px] tracking-[0.7px] text-[#545F7D]">
@@ -73,7 +90,35 @@ export function UsersDashboard() {
               {usersLoadError ? (
                 <p className="mb-4 text-sm text-[#E4033B]">{usersLoadError}</p>
               ) : null}
-              {!isLoadingUsers ? <DesktopUsersTable rows={paginatedRows} /> : null}
+              {!isLoadingUsers && paginatedRows.length > 0 ? (
+                <DesktopUsersTable
+                  rows={paginatedRows}
+                  filters={appliedFilters}
+                  hasActiveFilters={hasActiveFilters}
+                  organizationOptions={organizationOptions}
+                  onApplyFilters={handleApplyFilters}
+                  onResetFilters={handleResetFilters}
+                  onUpdateUserStatus={handleUpdateUserStatus}
+                />
+              ) : null}
+              {!isLoadingUsers && !usersLoadError && paginatedRows.length === 0 ? (
+                <div className="rounded-[4px] border border-[#213F7D14] bg-white px-4 py-6 text-sm text-[#545F7D]">
+                  <p>
+                    {searchQuery || hasActiveFilters
+                      ? 'No users matched the current search and filter settings.'
+                      : 'No users available.'}
+                  </p>
+                  {hasActiveFilters ? (
+                    <button
+                      type="button"
+                      className="mt-4 inline-flex h-9 items-center rounded-[8px] bg-[#39CDCC] px-4 text-[13px] font-semibold text-white"
+                      onClick={handleResetFilters}
+                    >
+                      Reset filters
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
             </section>
 
             <section className="mt-5 flex max-w-[1037px] flex-wrap items-center justify-between gap-4">
@@ -86,43 +131,54 @@ export function UsersDashboard() {
                   <span>{formattedVisibleUsers}</span>
                   <ChevronDown className="size-[14px]" strokeWidth={2.5} />
                 </button>
-                <span>out of {formattedTotalUsers}</span>
+                <span>out of {formattedPaginationTotalUsers}</span>
               </div>
 
-              <div className="flex items-center gap-5 text-[16px] leading-[19px] text-[#545F7D99]">
-                <button
-                  type="button"
-                  className="inline-flex size-6 items-center justify-center rounded-[4px] bg-[#213F7D1A] text-[#213F7D] disabled:cursor-not-allowed disabled:opacity-40"
-                  aria-label="Previous page"
-                  onClick={handlePreviousPage}
-                  disabled={paginationDisabled || currentPage === 1}
-                >
-                  <ChevronDown className="size-[14px] rotate-90" strokeWidth={2.5} />
-                </button>
-                {paginationTokens.map((token, tokenIndex) =>
-                  token === '...' ? (
-                    <span key={`desktop-ellipsis-${tokenIndex}`}>...</span>
-                  ) : (
-                    <button
-                      key={`desktop-page-${token}`}
-                      type="button"
-                      className={token === currentPage ? 'font-medium text-[#213F7D]' : ''}
-                      onClick={() => setCurrentPage(token)}
-                      disabled={paginationDisabled}
-                    >
-                      {token}
-                    </button>
-                  ),
-                )}
-                <button
-                  type="button"
-                  className="inline-flex size-6 items-center justify-center rounded-[4px] bg-[#213F7D1A] text-[#213F7D] disabled:cursor-not-allowed disabled:opacity-40"
-                  aria-label="Next page"
-                  onClick={handleNextPage}
-                  disabled={paginationDisabled || currentPage === totalPages}
-                >
-                  <ChevronDown className="size-[14px] -rotate-90" strokeWidth={2.5} />
-                </button>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-5 text-[16px] leading-[19px] text-[#545F7D99]">
+                  <button
+                    type="button"
+                    className="inline-flex size-6 items-center justify-center rounded-[4px] bg-[#213F7D1A] text-[#213F7D] disabled:cursor-not-allowed disabled:opacity-40"
+                    aria-label="Previous page"
+                    onClick={handlePreviousPage}
+                    disabled={paginationDisabled || currentPage === 1}
+                  >
+                    <ChevronDown className="size-[14px] rotate-90" strokeWidth={2.5} />
+                  </button>
+                  {paginationTokens.map((token, tokenIndex) =>
+                    token === '...' ? (
+                      <span key={`desktop-ellipsis-${tokenIndex}`}>...</span>
+                    ) : (
+                      <button
+                        key={`desktop-page-${token}`}
+                        type="button"
+                        className={token === currentPage ? 'font-medium text-[#213F7D]' : ''}
+                        onClick={() => setCurrentPage(token)}
+                        disabled={paginationDisabled}
+                      >
+                        {token}
+                      </button>
+                    ),
+                  )}
+                  <button
+                    type="button"
+                    className="inline-flex size-6 items-center justify-center rounded-[4px] bg-[#213F7D1A] text-[#213F7D] disabled:cursor-not-allowed disabled:opacity-40"
+                    aria-label="Next page"
+                    onClick={handleNextPage}
+                    disabled={paginationDisabled || currentPage === totalPages}
+                  >
+                    <ChevronDown className="size-[14px] -rotate-90" strokeWidth={2.5} />
+                  </button>
+                </div>
+                {hasActiveFilters ? (
+                  <button
+                    type="button"
+                    className="inline-flex h-[30px] items-center rounded-[8px] border border-[#39CDCC66] px-3 text-[12px] font-semibold text-[#39CDCC]"
+                    onClick={handleResetFilters}
+                  >
+                    Clear filters
+                  </button>
+                ) : null}
               </div>
             </section>
           </main>
@@ -145,10 +201,13 @@ export function UsersDashboard() {
                   className="inline-flex size-10 items-center justify-center rounded-full"
                   style={{ backgroundColor: `${item.tint}1A` }}
                 >
-                  <item.Icon
-                    className="size-[18px]"
-                    style={{ color: item.tint }}
-                    strokeWidth={2}
+                  <Image
+                    src={item.iconSrc}
+                    alt=""
+                    width={24}
+                    height={24}
+                    aria-hidden
+                    className="size-6"
                   />
                 </div>
                 <p className="mt-3 text-[12px] font-medium uppercase tracking-[0.6px] text-[#545F7D]">
@@ -166,7 +225,30 @@ export function UsersDashboard() {
             {usersLoadError ? (
               <p className="mb-4 text-sm text-[#E4033B]">{usersLoadError}</p>
             ) : null}
-            {!isLoadingUsers ? <MobileUsersTable rows={paginatedRows} /> : null}
+            {!isLoadingUsers && paginatedRows.length > 0 ? (
+              <MobileUsersTable
+                rows={paginatedRows}
+                onUpdateUserStatus={handleUpdateUserStatus}
+              />
+            ) : null}
+            {!isLoadingUsers && !usersLoadError && paginatedRows.length === 0 ? (
+              <div className="rounded-[6px] border border-[#213F7D14] bg-white px-4 py-6 text-sm text-[#545F7D]">
+                <p>
+                  {searchQuery || hasActiveFilters
+                    ? 'No users matched the current search and filter settings.'
+                    : 'No users available.'}
+                </p>
+                {hasActiveFilters ? (
+                  <button
+                    type="button"
+                    className="mt-4 inline-flex h-9 items-center rounded-[8px] bg-[#39CDCC] px-4 text-[13px] font-semibold text-white"
+                    onClick={handleResetFilters}
+                  >
+                    Reset filters
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
           </section>
 
           <section className="mt-5 flex flex-wrap items-center justify-between gap-4 text-[14px] leading-[16px] text-[#545F7D]">
@@ -179,43 +261,54 @@ export function UsersDashboard() {
                 <span>{formattedVisibleUsers}</span>
                 <ChevronDown className="size-[14px]" strokeWidth={2.5} />
               </button>
-              <span>of {formattedTotalUsers}</span>
+              <span>of {formattedPaginationTotalUsers}</span>
             </div>
 
-            <div className="flex items-center gap-4 text-[#545F7D99]">
-              <button
-                type="button"
-                className="inline-flex size-6 items-center justify-center rounded-[4px] bg-[#213F7D1A] text-[#213F7D] disabled:cursor-not-allowed disabled:opacity-40"
-                aria-label="Previous page"
-                onClick={handlePreviousPage}
-                disabled={paginationDisabled || currentPage === 1}
-              >
-                <ChevronDown className="size-[14px] rotate-90" strokeWidth={2.5} />
-              </button>
-              {paginationTokens.map((token, tokenIndex) =>
-                token === '...' ? (
-                  <span key={`mobile-ellipsis-${tokenIndex}`}>...</span>
-                ) : (
-                  <button
-                    key={`mobile-page-${token}`}
-                    type="button"
-                    className={token === currentPage ? 'font-medium text-[#213F7D]' : ''}
-                    onClick={() => setCurrentPage(token)}
-                    disabled={paginationDisabled}
-                  >
-                    {token}
-                  </button>
-                ),
-              )}
-              <button
-                type="button"
-                className="inline-flex size-6 items-center justify-center rounded-[4px] bg-[#213F7D1A] text-[#213F7D] disabled:cursor-not-allowed disabled:opacity-40"
-                aria-label="Next page"
-                onClick={handleNextPage}
-                disabled={paginationDisabled || currentPage === totalPages}
-              >
-                <ChevronDown className="size-[14px] -rotate-90" strokeWidth={2.5} />
-              </button>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4 text-[#545F7D99]">
+                <button
+                  type="button"
+                  className="inline-flex size-6 items-center justify-center rounded-[4px] bg-[#213F7D1A] text-[#213F7D] disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="Previous page"
+                  onClick={handlePreviousPage}
+                  disabled={paginationDisabled || currentPage === 1}
+                >
+                  <ChevronDown className="size-[14px] rotate-90" strokeWidth={2.5} />
+                </button>
+                {paginationTokens.map((token, tokenIndex) =>
+                  token === '...' ? (
+                    <span key={`mobile-ellipsis-${tokenIndex}`}>...</span>
+                  ) : (
+                    <button
+                      key={`mobile-page-${token}`}
+                      type="button"
+                      className={token === currentPage ? 'font-medium text-[#213F7D]' : ''}
+                      onClick={() => setCurrentPage(token)}
+                      disabled={paginationDisabled}
+                    >
+                      {token}
+                    </button>
+                  ),
+                )}
+                <button
+                  type="button"
+                  className="inline-flex size-6 items-center justify-center rounded-[4px] bg-[#213F7D1A] text-[#213F7D] disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="Next page"
+                  onClick={handleNextPage}
+                  disabled={paginationDisabled || currentPage === totalPages}
+                >
+                  <ChevronDown className="size-[14px] -rotate-90" strokeWidth={2.5} />
+                </button>
+              </div>
+              {hasActiveFilters ? (
+                <button
+                  type="button"
+                  className="inline-flex h-[30px] items-center rounded-[8px] border border-[#39CDCC66] px-3 text-[12px] font-semibold text-[#39CDCC]"
+                  onClick={handleResetFilters}
+                >
+                  Clear filters
+                </button>
+              ) : null}
             </div>
           </section>
 
