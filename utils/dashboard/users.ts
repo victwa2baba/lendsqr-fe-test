@@ -1,6 +1,7 @@
 import type {
   ApiUserRecord,
   PaginationToken,
+  UserDetails,
   UserRow,
   UserStatistics,
   UserStatus,
@@ -18,6 +19,7 @@ const USER_TIME_FORMATTER = new Intl.DateTimeFormat('en-US', {
   minute: '2-digit',
   hour12: true,
 });
+const DEFAULT_CURRENCY = 'NGN';
 
 export function getStatusPalette(status: UserStatus) {
   switch (status) {
@@ -81,6 +83,31 @@ function getStringValue(record: ApiUserRecord, key: string) {
   return typeof value === 'string' ? value : '';
 }
 
+function getObjectValue(record: ApiUserRecord, key: string): ApiUserRecord {
+  const value = record[key];
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as ApiUserRecord)
+    : {};
+}
+
+function getUserIdentifier(record: ApiUserRecord) {
+  return (
+    getStringValue(record, 'id') ||
+    getStringValue(record, '_id') ||
+    getStringValue(record, 'email')
+  );
+}
+
+function normalizeDisplayValue(value: string, fallback = '-') {
+  const normalizedValue = value.trim();
+  return normalizedValue.length > 0 ? normalizedValue : fallback;
+}
+
+function normalizeCurrencyCode(value: string) {
+  const normalizedCurrency = value.trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(normalizedCurrency) ? normalizedCurrency : DEFAULT_CURRENCY;
+}
+
 export function mapApiUsersToRows(payload: unknown): UserRow[] {
   if (!Array.isArray(payload)) {
     return [];
@@ -93,14 +120,16 @@ export function mapApiUsersToRows(payload: unknown): UserRow[] {
 
     const record = item as ApiUserRecord;
     const email = getStringValue(record, 'email');
+    const id = getUserIdentifier(record);
 
-    if (!email) {
+    if (!email || !id) {
       return rows;
     }
 
     const userNameFromEmail = email.includes('@') ? email.split('@')[0] : 'unknown';
 
     rows.push({
+      id,
       organization:
         getStringValue(record, 'orgName') ||
         getStringValue(record, 'organization') ||
@@ -120,6 +149,99 @@ export function mapApiUsersToRows(payload: unknown): UserRow[] {
   }, []);
 }
 
+export function findUserRecordById(payload: unknown, userId: string): ApiUserRecord | null {
+  if (!Array.isArray(payload)) {
+    return null;
+  }
+
+  const normalizedUserId = userId.trim();
+
+  if (!normalizedUserId) {
+    return null;
+  }
+
+  const matchedUser = payload.find((item) => {
+    if (!item || typeof item !== 'object') {
+      return false;
+    }
+
+    const userRecord = item as ApiUserRecord;
+    return getUserIdentifier(userRecord) === normalizedUserId;
+  });
+
+  return matchedUser && typeof matchedUser === 'object'
+    ? (matchedUser as ApiUserRecord)
+    : null;
+}
+
+export function mapApiUserRecordToDetails(record: ApiUserRecord): UserDetails {
+  const profile = getObjectValue(record, 'profile');
+  const education = getObjectValue(record, 'education');
+  const socials = getObjectValue(record, 'socials');
+  const guarantor = getObjectValue(record, 'guarantor');
+  const currencyCode = normalizeCurrencyCode(getStringValue(profile, 'currency'));
+
+  const email = getStringValue(record, 'email');
+  const organization = getStringValue(record, 'orgName');
+  const username = getStringValue(record, 'userName') || getStringValue(record, 'username');
+  const profileFirstName = getStringValue(profile, 'firstName');
+  const profileLastName = getStringValue(profile, 'lastName');
+  const fullName = normalizeDisplayValue(`${profileFirstName} ${profileLastName}`.trim());
+  const guarantorFirstName = getStringValue(guarantor, 'firstName');
+  const guarantorLastName = getStringValue(guarantor, 'lastName');
+  const guarantorEmail =
+    getStringValue(guarantor, 'email') || getStringValue(record, 'guarantorEmail');
+  const guarantorRelationship =
+    getStringValue(guarantor, 'relationship') ||
+    getStringValue(record, 'guarantorRelationship');
+
+  return {
+    id: getUserIdentifier(record),
+    organization: normalizeDisplayValue(organization, 'Unknown Organization'),
+    username: normalizeDisplayValue(username, email.split('@')[0] || 'unknown'),
+    email: normalizeDisplayValue(email),
+    phoneNumber: normalizeDisplayValue(
+      getStringValue(record, 'phoneNumber') ||
+        getStringValue(profile, 'phoneNumber') ||
+        getStringValue(record, 'phone'),
+    ),
+    dateJoined: formatDateJoined(getStringValue(record, 'createdAt')),
+    status: normalizeStatus(getStringValue(record, 'status')),
+    fullName,
+    avatarSrc: normalizeDisplayValue(
+      getStringValue(profile, 'avatar'),
+      '/images/dashboard/avatar.png',
+    ),
+    bvn: normalizeDisplayValue(getStringValue(profile, 'bvn')),
+    gender: normalizeDisplayValue(getStringValue(profile, 'gender')),
+    maritalStatus: normalizeDisplayValue(getStringValue(record, 'maritalStatus')),
+    children: normalizeDisplayValue(getStringValue(record, 'children')),
+    typeOfResidence: normalizeDisplayValue(getStringValue(record, 'typeOfResidence')),
+    educationLevel: normalizeDisplayValue(getStringValue(education, 'level')),
+    employmentStatus: normalizeDisplayValue(getStringValue(education, 'employmentStatus')),
+    sector: normalizeDisplayValue(getStringValue(education, 'sector')),
+    employmentDuration: normalizeDisplayValue(getStringValue(education, 'duration')),
+    officeEmail: normalizeDisplayValue(getStringValue(education, 'officeEmail')),
+    monthlyIncome: formatMonthlyIncome(education.monthlyIncome, currencyCode),
+    loanRepayment: formatLoanRepayment(education.loanRepayment, currencyCode),
+    twitter: normalizeDisplayValue(getStringValue(socials, 'twitter')),
+    facebook: normalizeDisplayValue(getStringValue(socials, 'facebook')),
+    instagram: normalizeDisplayValue(getStringValue(socials, 'instagram')),
+    guarantorFullName: normalizeDisplayValue(
+      `${guarantorFirstName} ${guarantorLastName}`.trim(),
+    ),
+    guarantorPhoneNumber: normalizeDisplayValue(getStringValue(guarantor, 'phoneNumber')),
+    guarantorEmail: normalizeDisplayValue(guarantorEmail),
+    guarantorRelationship: normalizeDisplayValue(guarantorRelationship),
+    accountBalance: formatAccountBalance(record.accountBalance, currencyCode),
+    accountNumber: normalizeDisplayValue(getStringValue(record, 'accountNumber')),
+    bankName: normalizeDisplayValue(
+      getStringValue(record, 'bankName') || getStringValue(record, 'orgName'),
+    ),
+    userTier: 1,
+  };
+}
+
 function parseNumberValue(value: unknown) {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
@@ -133,6 +255,51 @@ function parseNumberValue(value: unknown) {
   }
 
   return null;
+}
+
+function formatAmountWithCurrency(value: unknown, currencyCode: string) {
+  const parsedValue = parseNumberValue(value);
+  const safeCurrencyCode = normalizeCurrencyCode(currencyCode);
+
+  if (parsedValue === null) {
+    return `${safeCurrencyCode} 0.00`;
+  }
+
+  try {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: safeCurrencyCode,
+      minimumFractionDigits: 2,
+    }).format(parsedValue);
+  } catch {
+    return `${safeCurrencyCode} ${parsedValue.toFixed(2)}`;
+  }
+}
+
+function formatMonthlyIncome(value: unknown, currencyCode: string) {
+  if (Array.isArray(value)) {
+    const incomes = value
+      .map((income) => formatAmountWithCurrency(income, currencyCode))
+      .filter((income) => income.length > 0);
+
+    if (incomes.length > 0) {
+      return incomes.join(' - ');
+    }
+  }
+
+  if (typeof value === 'string' || typeof value === 'number') {
+    return formatAmountWithCurrency(value, currencyCode);
+  }
+
+  return '-';
+}
+
+function formatAccountBalance(value: unknown, currencyCode: string) {
+  return formatAmountWithCurrency(value, currencyCode);
+}
+
+function formatLoanRepayment(value: unknown, currencyCode: string) {
+  return formatAmountWithCurrency(value, currencyCode);
 }
 
 export function buildStatisticsFromPayload(

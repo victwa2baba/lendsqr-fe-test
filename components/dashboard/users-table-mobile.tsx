@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Eye, MoreVertical, UserCheck, UserX } from 'lucide-react';
 
 import { TABLE_HEADERS } from '@/lib/constants/dashboard';
@@ -103,14 +104,14 @@ export function MobileUsersTable({
 
                     {isActionMenuOpen ? (
                       <div className="absolute right-0 top-7 z-20 w-[170px] rounded-[4px] border border-[#545F7D0A] bg-white py-2 shadow-[3px_5px_20px_0px_rgba(0,0,0,0.08)]">
-                        <button
-                          type="button"
+                        <Link
+                          href={`/dashboard/users/${encodeURIComponent(row.id)}`}
                           className="flex w-full items-center gap-2 px-4 py-2 text-left text-[13px] leading-[16px] text-[#545F7D]"
                           onClick={() => setActiveActionMenuEmail(null)}
                         >
                           <Eye className="size-4" strokeWidth={2} />
                           <span>View Details</span>
-                        </button>
+                        </Link>
                         <button
                           type="button"
                           className="flex w-full items-center gap-2 px-4 py-2 text-left text-[13px] leading-[16px] text-[#545F7D]"

@@ -17,11 +17,16 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-const DEMO_USER: User = {
-  id: 'candidate-user',
-  email: 'candidate@lendsqr.com',
+const ALLOWED_LOGIN_CREDENTIALS = {
+  email: 'victorjoseph@lendsqr.com',
+  password: '123456',
+} as const;
+
+const AUTHENTICATED_USER: User = {
+  id: 'victor-joseph',
+  email: ALLOWED_LOGIN_CREDENTIALS.email,
   emailVerified: true,
-  phoneNumber: '+234 803 000 0000',
+  phoneNumber: '+234 803 000 0001',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };
@@ -34,6 +39,8 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -44,9 +51,23 @@ export default function LoginPage() {
   });
 
   const onSubmit = (values: LoginFormValues) => {
+    const normalizedEmail = values.email.trim().toLowerCase();
+    const isAuthorizedUser =
+      normalizedEmail === ALLOWED_LOGIN_CREDENTIALS.email &&
+      values.password === ALLOWED_LOGIN_CREDENTIALS.password;
+
+    if (!isAuthorizedUser) {
+      setError('root', {
+        type: 'manual',
+        message: 'Invalid email or password.',
+      });
+      return;
+    }
+
+    clearErrors('root');
+
     const sessionUser: User = {
-      ...DEMO_USER,
-      email: values.email,
+      ...AUTHENTICATED_USER,
       updatedAt: new Date().toISOString(),
     };
 
@@ -142,6 +163,12 @@ export default function LoginPage() {
                   </p>
                 ) : null}
               </div>
+
+              {errors.root?.message ? (
+                <p className="mt-4 text-sm font-medium text-[#d14343]">
+                  {errors.root.message}
+                </p>
+              ) : null}
 
               <Link
                 href="#"

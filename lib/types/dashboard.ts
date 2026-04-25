@@ -20,12 +20,48 @@ export type DashboardNavSection = {
 };
 
 export type UserRow = {
+  id: string;
   organization: string;
   username: string;
   email: string;
   phoneNumber: string;
   dateJoined: string;
   status: UserStatus;
+};
+
+export type UserDetails = {
+  id: string;
+  organization: string;
+  username: string;
+  email: string;
+  phoneNumber: string;
+  dateJoined: string;
+  status: UserStatus;
+  fullName: string;
+  avatarSrc: string;
+  bvn: string;
+  gender: string;
+  maritalStatus: string;
+  children: string;
+  typeOfResidence: string;
+  educationLevel: string;
+  employmentStatus: string;
+  sector: string;
+  employmentDuration: string;
+  officeEmail: string;
+  monthlyIncome: string;
+  loanRepayment: string;
+  twitter: string;
+  facebook: string;
+  instagram: string;
+  guarantorFullName: string;
+  guarantorPhoneNumber: string;
+  guarantorEmail: string;
+  guarantorRelationship: string;
+  accountBalance: string;
+  accountNumber: string;
+  bankName: string;
+  userTier: number;
 };
 
 export type UserTableFilters = {

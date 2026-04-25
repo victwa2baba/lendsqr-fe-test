@@ -1,15 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import { ChevronDown, LogOut } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 import { SIDEBAR_META_ICONS } from '@/lib/constants/dashboard';
 import type { DashboardNavItem, DashboardNavSection } from '@/lib/types/dashboard';
 
 type SidebarProps = {
   sections: DashboardNavSection[];
-  onLogout: () => void;
-  version?: string;
 };
 
 function SidebarItem({ item }: { item: DashboardNavItem }) {
@@ -36,11 +34,7 @@ function SidebarItem({ item }: { item: DashboardNavItem }) {
   );
 }
 
-export function Sidebar({
-  sections,
-  onLogout,
-  version = 'v1.2.0',
-}: SidebarProps) {
+export function Sidebar({ sections }: SidebarProps) {
   return (
     <aside className="no-scrollbar min-h-0 overflow-y-auto border-r border-[#213F7D0F] bg-white pb-8 pt-[39px] shadow-[0px_5px_20px_0px_rgba(0,0,0,0.04)]">
       <div className="px-[30px]">
@@ -89,21 +83,6 @@ export function Sidebar({
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="mt-[30px] border-t border-[#213F7D1A] pt-5">
-        <button
-          type="button"
-          className="flex h-[40px] w-full items-center gap-[10px] px-[30px] text-left text-[16px] text-[#545F7D]"
-          onClick={onLogout}
-        >
-          <LogOut className="size-4" strokeWidth={1.9} />
-          <span>Logout</span>
-        </button>
-
-        <p className="px-[30px] pt-[14px] text-[12px] leading-[14px] text-[#213F7D99]">
-          {version}
-        </p>
       </div>
     </aside>
   );

@@ -1,5 +1,6 @@
 import type { FormEvent } from 'react';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Eye, MoreVertical, UserCheck, UserX } from 'lucide-react';
 
 import {
@@ -334,14 +335,14 @@ export function DesktopUsersTable({
                           actionMenuPositionClass,
                         ].join(' ')}
                       >
-                        <button
-                          type="button"
+                        <Link
+                          href={`/dashboard/users/${encodeURIComponent(row.id)}`}
                           className="flex w-full items-center gap-2 px-5 py-2 text-left text-[14px] leading-[16px] text-[#545F7D] hover:bg-[#39CDCC0D]"
                           onClick={() => setActiveActionMenuEmail(null)}
                         >
                           <Eye className="size-4" strokeWidth={2} />
                           <span>View Details</span>
-                        </button>
+                        </Link>
                         <button
                           type="button"
                           className="flex w-full items-center gap-2 px-5 py-2 text-left text-[14px] leading-[16px] text-[#545F7D] hover:bg-[#39CDCC0D]"
