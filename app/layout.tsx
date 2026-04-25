@@ -5,7 +5,7 @@ import type { Metadata, Viewport } from 'next';
 
 const siteName = 'Lendsqr Test Task';
 const siteDescription =
-  'A test task for Lendsqr frontend internship position. Built with Next.js 16, TypeScript, and Tailwind CSS.';
+  'A test task for Lendsqr frontend position. Built with Next.js 16, TypeScript, and Tailwind CSS.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -26,6 +26,14 @@ export const metadata: Metadata = {
     title: siteName,
     description: siteDescription,
     url: '/',
+    images: [ 
+      {
+        url: '/images/favicon.png',
+        width: 500,
+        height: 500,
+        alt: `${siteName} - ${siteDescription}`,
+      },
+    ],
   },
   twitter: {
     card: 'summary',
