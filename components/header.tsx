@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChangeEventHandler, FormEventHandler } from 'react';
 import Image from 'next/image';
 import { Bell, ChevronDown, LogOut, Menu, Search, X } from 'lucide-react';
+import Link from 'next/link';
 
 const SEARCH_DEBOUNCE_DELAY_MS = 400;
 
@@ -152,14 +153,10 @@ export function Header({
       </div>
 
       <div className="ml-4 flex shrink-0 items-center gap-4 text-[#213F7D] lg:gap-6 xl:gap-[33px]">
-        {showDocsLink ? (
-          <button
-            type="button"
-            className="hidden text-[16px] underline underline-offset-2 xl:block"
-            style={{ fontFamily: 'Roboto, sans-serif' }}
-          >
+        {showDocsLink ? ( 
+          <Link href="https://innate-court-82f.notion.site/Lendsqr-Frontend-Implementation-Documentation-By-Victor-Joseph-Tounaregha-8dc061154431426a93db242b8a72b728" target="_blank" rel="noopener noreferrer">
             Docs
-          </button>
+            </Link>
         ) : null}
 
         <button
